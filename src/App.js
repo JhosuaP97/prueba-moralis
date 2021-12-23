@@ -1,122 +1,195 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { useMoralis } from "react-moralis";
 import "./App.css";
 
+const urlOpenSea =
+  "https://testnets-api.opensea.io/assets?owner=0x6Bdde8b895cFa888cE235Da49068f2c94E81FEd4&order_direction=desc&offset=0&limit=20";
+const nft_contract_address = "0x0Fb6EF3505b9c52Ed39595433a21aF9B5FCc4431"; //NFT Minting Contract Use This One "Batteries Included", code of this contract is in the github repository under contract_base for your reference.
+
 function App() {
-  const { Moralis, authenticate, isAuthenticated, user } = useMoralis();
+  const {
+    Moralis,
+    user,
+    logout,
+    authenticate,
+    enableWeb3,
+    isInitialized,
+    isAuthenticated,
+    isWeb3Enabled,
+  } = useMoralis();
 
-  const address = user?.attributes?.ethAddress;
+  const web3 = new Moralis.Web3(window.ethereum);
+
+  const [values, setValues] = useState({ tokenAddress: "", tokenId: "" });
   const [NFTS, setNFTS] = useState([]);
-  const [searchValue, setSearchValue] = useState("pancake");
+  const [file, setFile] = useState([]);
+  const [name, setName] = useState("");
+  const web3Account = useMemo(
+    () => isAuthenticated && user.get("accounts")[0],
+    [user, isAuthenticated]
+  );
 
-  const getAssets = async (search) => {
-    const options = {
-      q: search,
-      limit: 100,
-      filter: "name",
-    };
-
-    const nfts = await Moralis.Web3API.token.searchNFTs(options);
-    const results = await nfts.result;
-    console.log(results);
-
-    const resultToken = results.map((nft) => fixURL(nft.token_uri));
-
-    const response = await resultToken.map(async (res) => {
-      const params = { url: res };
-      console.log({ res });
-      //This function is call from moralis admin
-      try {
-        const metadata = await Moralis.Cloud.run("fetchJSON", params);
-        return (
-          metadata.data.image ||
-          metadata.data.image_url ||
-          metadata.data.imageUrl
-        );
-        console.log(metadata);
-      } catch (error) {
-        console.log(error);
-      }
-    });
-    const final = await Promise.all(response);
-
-    setNFTS(final);
+  const getAsset = async () => {
+    try {
+      const res = await Moralis.Plugins.opensea.getAsset({
+        network: "testnet",
+        tokenAddress: values.tokenAddress,
+        tokenId: values.tokenId,
+      });
+      console.log(res);
+    } catch (error) {
+      console.log(error);
+    }
   };
 
-  function fixURL(url) {
-    if (url.startsWith("ipfs")) {
-      return `https://ipfs.moralis.io:2053/ipfs/${url
-        .split("ipfs://ipfs/")
-        .slice(-1)}`;
+  useEffect(() => {
+    if (isInitialized) {
+      Moralis.initPlugins();
     }
-    return `${url}?format=json`;
-  }
+    // eslint-disable-next-line
+  }, []);
 
-  function checkImage(image) {
-    if (image && image.startsWith("ipfs")) {
-      return `https://ipfs.moralis.io:2053/ipfs/${image
-        .split("ipfs://ipfs/")
-        .slice(-1)}`;
+  useEffect(() => {
+    if (isAuthenticated && !isWeb3Enabled) {
+      enableWeb3();
     }
+    // eslint-disable-next-line
+  }, [isAuthenticated]);
 
-    return image;
-  }
+  useEffect(() => {
+    const fetchData = async () => {
+      const response = await fetch(urlOpenSea, {
+        method: "GET",
+      });
+      const data = await response.json();
+      console.log(data);
+      setNFTS(data.assets);
+    };
+    fetchData();
+  }, []);
 
-  const handleChange = (e) => setSearchValue(e.target.value);
+  const onFileChange = (e) => {
+    const data = e.target.files[0];
+    setFile(data);
+  };
 
-  if (!isAuthenticated) {
-    return (
-      <div>
-        <button onClick={() => authenticate()}>Authenticate</button>
-      </div>
+  const upload = async () => {
+    const imageFile = new Moralis.File(file.name, file);
+    await imageFile.saveIPFS();
+    const imageURI = imageFile.ipfs();
+    const metadata = {
+      name,
+      image: imageURI,
+    };
+    const metadataFile = new Moralis.File("metadata.json", {
+      base64: btoa(JSON.stringify(metadata)),
+    });
+    await metadataFile.saveIPFS();
+    const metadataURI = metadataFile.ipfs();
+    const txt = await mintToken(metadataURI).then(console.log);
+    console.log(txt);
+  };
+
+  async function mintToken(_uri) {
+    const encodedFunction = web3.eth.abi.encodeFunctionCall(
+      {
+        name: "mintToken",
+        type: "function",
+        inputs: [
+          {
+            type: "string",
+            name: "tokenURI",
+          },
+        ],
+      },
+      [_uri]
     );
+    const transactionParameters = {
+      to: nft_contract_address,
+      from: window.ethereum.selectedAddress,
+      data: encodedFunction,
+    };
+    const txt = await window.ethereum.request({
+      method: "eth_sendTransaction",
+      params: [transactionParameters],
+    });
+    return txt;
   }
 
   return (
-    <div>
-      <h1>Welcome {address}</h1>
+    <>
+      {isAuthenticated ? (
+        <div>
+          <div>{web3Account}</div>
+          <button onClick={() => logout()}>Logout</button>
+        </div>
+      ) : (
+        <button onClick={() => authenticate()}>Connect to Metamask</button>
+      )}
+      <div>
+        <div>
+          <input
+            type="text"
+            placeholder="NFT Token Address"
+            value={values.tokenAddress}
+            onChange={(e) =>
+              setValues({ ...values, tokenAddress: e.target.value })
+            }
+          />
+          <input
+            type="number"
+            value={values.tokenId}
+            onChange={(e) => setValues({ ...values, tokenId: e.target.value })}
+          />
+        </div>
+        <div>
+          <input
+            type="text"
+            placeholder="Name"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+          />
+        </div>
+        <div>
+          <button onClick={getAsset}>Get Asset</button>
+          <input type="file" name="selectedFile" onChange={onFileChange} />
+          <button onClick={upload}>Upload</button>
 
-      <form onSubmit={(e) => e.preventDefault()}>
-        <input
-          type="text"
-          placeholder="Search"
-          value={searchValue}
-          onChange={handleChange}
-        />
-        <button type="submit" onClick={() => getAssets(searchValue)}>
-          Get assets
-        </button>
-      </form>
+          {/* <button onClick={getOrder}>Get Order</button> */}
+          {isAuthenticated && (
+            <>
+              {/* <button onClick={createBuyOrder}>Create Buy Order</button>
+              <button onClick={createSellOrder}>Create Sell Order</button> */}
+            </>
+          )}
+        </div>
 
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))",
-          gap: "1rem",
-        }}
-      >
-        {NFTS &&
-          NFTS.map((nft, i) => (
-            <div key={i}>
-              {nft !== undefined && (
-                <>
-                  <small>{i}</small>
-                  <img
-                    style={{
-                      objectFit: "cover",
-                    }}
-                    width="100"
-                    height="100"
-                    key={i}
-                    src={checkImage(nft)}
-                    alt="nft"
-                  />
-                </>
-              )}
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fit, minmax(100px, 1fr))",
+            margin: "2rem",
+          }}
+        >
+          {NFTS.map((nft, i) => (
+            <div key={nft.id} style={{ textAlign: "center" }}>
+              <small>{i}</small>
+              <img
+                src={nft.image_url}
+                alt="nft"
+                style={{
+                  objectFit: "contain",
+                  width: "10rem",
+                  height: "10rem",
+                  "max-width": "100%",
+                  "max-height": "100%",
+                }}
+              />
             </div>
           ))}
+        </div>
       </div>
-    </div>
+    </>
   );
 }
 
