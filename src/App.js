@@ -2,8 +2,8 @@ import React, { useState, useEffect, useMemo } from "react";
 import { useMoralis } from "react-moralis";
 import "./App.css";
 
-const urlOpenSea =
-  "https://testnets-api.opensea.io/assets?owner=0x6Bdde8b895cFa888cE235Da49068f2c94E81FEd4&order_direction=desc&offset=0&limit=20";
+const ownerContractAddress = "0x6Bdde8b895cFa888cE235Da49068f2c94E81FEd4";
+const urlOpenSea = `https://testnets-api.opensea.io/assets?owner=${ownerContractAddress}&order_direction=desc&offset=0&limit=20`;
 const nft_contract_address = "0x0Fb6EF3505b9c52Ed39595433a21aF9B5FCc4431"; //NFT Minting Contract Use This One "Batteries Included", code of this contract is in the github repository under contract_base for your reference.
 
 function App() {
@@ -127,7 +127,7 @@ function App() {
         <button onClick={() => authenticate()}>Connect to Metamask</button>
       )}
       <div>
-        <div>
+        <div style={{ margin: "1rem 0" }}>
           <input
             type="text"
             placeholder="NFT Token Address"
@@ -138,9 +138,11 @@ function App() {
           />
           <input
             type="number"
+            placeholder="NFT Token ID"
             value={values.tokenId}
             onChange={(e) => setValues({ ...values, tokenId: e.target.value })}
           />
+          <button onClick={getAsset}>Get Asset</button>
         </div>
         <div>
           <input
@@ -151,17 +153,8 @@ function App() {
           />
         </div>
         <div>
-          <button onClick={getAsset}>Get Asset</button>
           <input type="file" name="selectedFile" onChange={onFileChange} />
           <button onClick={upload}>Upload</button>
-
-          {/* <button onClick={getOrder}>Get Order</button> */}
-          {isAuthenticated && (
-            <>
-              {/* <button onClick={createBuyOrder}>Create Buy Order</button>
-              <button onClick={createSellOrder}>Create Sell Order</button> */}
-            </>
-          )}
         </div>
 
         <div
@@ -181,8 +174,8 @@ function App() {
                   objectFit: "contain",
                   width: "10rem",
                   height: "10rem",
-                  "max-width": "100%",
-                  "max-height": "100%",
+                  maxWidth: "100%",
+                  maxHeight: "100%",
                 }}
               />
             </div>
