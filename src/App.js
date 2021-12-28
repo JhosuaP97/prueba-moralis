@@ -3,7 +3,7 @@ import { useMoralis } from "react-moralis";
 import "./App.css";
 
 const ownerContractAddress = "0x6Bdde8b895cFa888cE235Da49068f2c94E81FEd4";
-const urlOpenSea = `https://testnets-api.opensea.io/assets?owner=${ownerContractAddress}&order_direction=desc&offset=0&limit=20`;
+const urlOpenSea = `https://testnets-api.opensea.io/assets?owner=${ownerContractAddress}&order_direction=desc&offset=0&limit=50`;
 const nft_contract_address = "0x0Fb6EF3505b9c52Ed39595433a21aF9B5FCc4431"; //NFT Minting Contract Use This One "Batteries Included", code of this contract is in the github repository under contract_base for your reference.
 
 function App() {
@@ -24,6 +24,9 @@ function App() {
   const [NFTS, setNFTS] = useState([]);
   const [file, setFile] = useState([]);
   const [name, setName] = useState("");
+  const [properties, setProperties] = useState([{ trait_type: "", value: "" }]);
+  const [search, setSearch] = useState("");
+
   const web3Account = useMemo(
     () => isAuthenticated && user.get("accounts")[0],
     [user, isAuthenticated]
@@ -80,6 +83,7 @@ function App() {
     const metadata = {
       name,
       image: imageURI,
+      traits: properties,
     };
     const metadataFile = new Moralis.File("metadata.json", {
       base64: btoa(JSON.stringify(metadata)),
@@ -115,6 +119,36 @@ function App() {
     });
     return txt;
   }
+  const addFormFields = () => {
+    setProperties([...properties, { trait_type: "", value: "" }]);
+  };
+
+  const handleChange = (i, e) => {
+    const newProperties = [...properties];
+    newProperties[i][e.target.name] = e.target.value;
+    setProperties(newProperties);
+  };
+
+  const removeFormFields = (i) => {
+    let newProperties = [...properties];
+    const deleteProperty = newProperties.filter((_, index) => index !== i);
+    setProperties(deleteProperty);
+  };
+
+  function searchByProperty(data) {
+    if (search !== "") {
+      return data.filter((item) =>
+        item.traits.some(
+          (trait) =>
+            trait.trait_type
+              .toString()
+              .toLowerCase()
+              .indexOf(search.toLowerCase()) !== -1
+        )
+      );
+    }
+    return data;
+  }
 
   return (
     <>
@@ -127,7 +161,7 @@ function App() {
         <button onClick={() => authenticate()}>Connect to Metamask</button>
       )}
       <div>
-        <div style={{ margin: "1rem 0" }}>
+        {/* <div style={{ margin: "1rem 0" }}>
           <input
             type="text"
             placeholder="NFT Token Address"
@@ -143,8 +177,9 @@ function App() {
             onChange={(e) => setValues({ ...values, tokenId: e.target.value })}
           />
           <button onClick={getAsset}>Get Asset</button>
-        </div>
+        </div> */}
         <div>
+          <input type="file" name="selectedFile" onChange={onFileChange} />
           <input
             type="text"
             placeholder="Name"
@@ -153,9 +188,40 @@ function App() {
           />
         </div>
         <div>
-          <input type="file" name="selectedFile" onChange={onFileChange} />
+          {properties.map((property, i) => (
+            <div key={i}>
+              <input
+                type="text"
+                placeholder="Name property"
+                value={property.trait_type}
+                onChange={(e) => handleChange(i, e)}
+                name="trait_type"
+              />
+              <input
+                type="text"
+                placeholder="Value property"
+                value={property.value}
+                onChange={(e) => handleChange(i, e)}
+                name="value"
+              />
+
+              {i ? (
+                <button type="button" onClick={() => removeFormFields(i)}>
+                  Remove
+                </button>
+              ) : null}
+            </div>
+          ))}
+          <button onClick={addFormFields}>Add new property</button>
           <button onClick={upload}>Upload</button>
         </div>
+
+        <input
+          type="text"
+          placeholder="Search by property"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+        />
 
         <div
           style={{
@@ -164,7 +230,7 @@ function App() {
             margin: "2rem",
           }}
         >
-          {NFTS.map((nft, i) => (
+          {searchByProperty(NFTS).map((nft, i) => (
             <div key={nft.id} style={{ textAlign: "center" }}>
               <small>{i}</small>
               <img
@@ -178,6 +244,13 @@ function App() {
                   maxHeight: "100%",
                 }}
               />
+              <ul>
+                {nft.traits.map((trait, index) => (
+                  <li key={index}>
+                    {trait.trait_type}: {trait.value}
+                  </li>
+                ))}
+              </ul>
             </div>
           ))}
         </div>
