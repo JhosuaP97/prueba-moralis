@@ -2,9 +2,10 @@ import React, { useState, useEffect, useMemo } from "react";
 import { useMoralis } from "react-moralis";
 import "./App.css";
 
-const ownerContractAddress = "0x6Bdde8b895cFa888cE235Da49068f2c94E81FEd4";
-const urlOpenSea = `https://testnets-api.opensea.io/assets?owner=${ownerContractAddress}&order_direction=desc&offset=0&limit=50`;
-const nft_contract_address = "0x0Fb6EF3505b9c52Ed39595433a21aF9B5FCc4431"; //NFT Minting Contract Use This One "Batteries Included", code of this contract is in the github repository under contract_base for your reference.
+
+
+const ownerContractAddress = "0x1D59181A7b9Df5F6F5AfBb301f6C92131ee787a6";
+const urlOpenSea = `https://testnets-api.opensea.io/assets?owner=${ownerContractAddress}&order_direction=desc&offset=0&limit=10&offset=0`;
 
 function App() {
   const {
@@ -26,6 +27,7 @@ function App() {
   const [name, setName] = useState("");
   const [properties, setProperties] = useState([{ trait_type: "", value: "" }]);
   const [search, setSearch] = useState("");
+  const [contractAddress, setContractAddress] = useState("")
 
   const web3Account = useMemo(
     () => isAuthenticated && user.get("accounts")[0],
@@ -53,6 +55,18 @@ function App() {
   }, []);
 
   useEffect(() => {
+    const fetchData = async () => {
+      const response = await fetch(urlOpenSea, {
+        method: "GET",
+      });
+      const data = await response.json();
+      console.log(data);
+      setNFTS(data.assets);
+    };
+    fetchData();
+  }, [])
+
+  useEffect(() => {
     if (isAuthenticated && !isWeb3Enabled) {
       enableWeb3();
     }
@@ -61,12 +75,12 @@ function App() {
 
   useEffect(() => {
     const fetchData = async () => {
-      const response = await fetch(urlOpenSea, {
+      const response = await fetch("http://127.0.0.1:5000/gestion_empresa/company_contract", {
         method: "GET",
       });
       const data = await response.json();
       console.log(data);
-      setNFTS(data.assets);
+      setContractAddress(data.data);
     };
     fetchData();
   }, []);
@@ -109,7 +123,7 @@ function App() {
       [_uri]
     );
     const transactionParameters = {
-      to: nft_contract_address,
+      to: contractAddress,
       from: window.ethereum.selectedAddress,
       data: encodedFunction,
     };
