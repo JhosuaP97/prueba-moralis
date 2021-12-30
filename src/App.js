@@ -5,7 +5,7 @@ import "./App.css";
 
 
 
-const ownerContractAddress = "0x1D59181A7b9Df5F6F5AfBb301f6C92131ee787a6";
+const ownerContractAddress = "0xE4DCeA1AB8C86543209571350a5C1D470eB009b1";
 const urlOpenSea = `https://testnets-api.opensea.io/assets?owner=${ownerContractAddress}&order_direction=desc&offset=0&limit=10&offset=0`;
 
 function App() {
