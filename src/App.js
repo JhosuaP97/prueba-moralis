@@ -1,11 +1,10 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { Button, CardNFT, TextField } from "./components";
 import { useMoralis } from "react-moralis";
+import toast, { Toaster } from "react-hot-toast";
 import "./App.css";
 
-
-
-const ownerContractAddress = "0xE4DCeA1AB8C86543209571350a5C1D470eB009b1";
+const ownerContractAddress = "0x6bdde8b895cfa888ce235da49068f2c94e81fed4";
 const urlOpenSea = `https://testnets-api.opensea.io/assets?owner=${ownerContractAddress}&order_direction=desc&offset=0&limit=10&offset=0`;
 
 function App() {
@@ -29,7 +28,7 @@ function App() {
   const [imagePreview, setimagePreview] = useState(null);
   const [properties, setProperties] = useState([{ trait_type: "", value: "" }]);
   const [search, setSearch] = useState("");
-  const [contractAddress, setContractAddress] = useState("")
+  const [contractAddress, setContractAddress] = useState("");
 
   const web3Account = useMemo(
     () => isAuthenticated && user.get("accounts")[0],
@@ -66,7 +65,7 @@ function App() {
       setNFTS(data.assets);
     };
     fetchData();
-  }, [])
+  }, []);
 
   useEffect(() => {
     if (isAuthenticated && !isWeb3Enabled) {
@@ -75,22 +74,29 @@ function App() {
     // eslint-disable-next-line
   }, [isAuthenticated]);
 
-  useEffect(() => {
-    const fetchData = async () => {
-      const response = await fetch("http://127.0.0.1:5000/gestion_empresa/company_contract", {
-        method: "GET",
-      });
-      const data = await response.json();
-      console.log(data);
-      setContractAddress(data.data);
-    };
-    fetchData();
-  }, []);
+  // useEffect(() => {
+  //   const fetchData = async () => {
+  //     const response = await fetch("http://127.0.0.1:5000/gestion_empresa/company_contract", {
+  //       method: "GET",
+  //     });
+  //     const data = await response.json();
+  //     console.log(data);
+  //     setContractAddress(data.data);
+  //   };
+  //   fetchData();
+  // }, []);
 
   const onFileChange = (e) => {
-    const data = e.target.files[0];
-    setFile(data);
-    setimagePreview(URL.createObjectURL(data));
+    if (e.target.files.length !== 0) {
+      const data = e.target.files[0];
+      const dataFormat = new File(
+        [data],
+        `${data.name.replace(/(?:\.(?![^.]+$)|[^\w.])+/g, "-")}`,
+        { type: data.type }
+      );
+      setFile(dataFormat);
+      setimagePreview(window?.URL?.createObjectURL(dataFormat));
+    }
   };
 
   const upload = async () => {
@@ -107,8 +113,26 @@ function App() {
     });
     await metadataFile.saveIPFS();
     const metadataURI = metadataFile.ipfs();
-    const txt = await mintToken(metadataURI).then(console.log);
-    console.log(txt);
+
+    toast.promise(
+      mintToken(metadataURI),
+      {
+        loading: "Subiendo NFT...",
+        success: `Has subido con éxito tú NFT`,
+        error: "Error en intentar subir el NFT",
+      },
+
+      {
+        style: {
+          overflow: "auto",
+          background: "#4545e6",
+          color: "#fff",
+        },
+        success: {
+          icon: "🔥",
+        },
+      }
+    );
   };
 
   async function mintToken(_uri) {
@@ -126,7 +150,7 @@ function App() {
       [_uri]
     );
     const transactionParameters = {
-      to: contractAddress,
+      to: "0x0Fb6EF3505b9c52Ed39595433a21aF9B5FCc4431",
       from: window.ethereum.selectedAddress,
       data: encodedFunction,
     };
@@ -180,6 +204,7 @@ function App() {
         <Button onClick={() => authenticate()}>Conectarse a Metamask</Button>
       )}
       <div className="container">
+        <Toaster />
         <section>
           <h3>Escribe el nombre del NFT</h3>
           <div>
@@ -249,7 +274,7 @@ function App() {
 
         <div className="grid">
           {searchByProperty(NFTS).map((nft, i) => (
-            <CardNFT nft={nft} />
+            <CardNFT nft={nft} key={nft.id} />
           ))}
         </div>
       </div>

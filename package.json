@@ -9,6 +9,7 @@
     "moralis": "0.0.176",
     "react": "^17.0.2",
     "react-dom": "^17.0.2",
+    "react-hot-toast": "^2.1.1",
     "react-moralis": "^0.3.11",
     "react-scripts": "^4.0.3",
     "web-vitals": "^2.1.2"
@@ -41,6 +42,6 @@
     "react-error-overlay": "^6.0.9"
   },
   "resolutions": {
-		"react-error-overlay": "6.0.9"
-	}
+    "react-error-overlay": "6.0.9"
+  }
 }

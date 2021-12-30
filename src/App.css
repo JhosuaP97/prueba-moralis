@@ -2,9 +2,15 @@
 :root {
   --bg-button: #4545e6;
 }
+
+body {
+  height: 100vh;
+}
+
 .login {
   display: flex;
   justify-content: space-around;
+  flex-wrap: wrap;
 }
 
 .container {
@@ -13,8 +19,11 @@
 }
 
 .image-preview {
-  width: 400px;
-  object-fit: contain;
+  display: block;
+  max-width: 400px;
+  max-height: 300px;
+  width: auto;
+  height: auto;
 }
 
 .grid {
@@ -47,4 +56,15 @@
 
 .search {
   margin: 1.5rem 0;
+}
+
+@media screen and (max-width: 768px) {
+  .login {
+    justify-content: flex-start;
+    margin: 0 1rem;
+  }
+
+  .container {
+    margin: 0 1rem;
+  }
 }

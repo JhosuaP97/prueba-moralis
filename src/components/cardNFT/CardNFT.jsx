@@ -2,9 +2,9 @@ import React from "react";
 import "./CardNFTStyles.css";
 
 const CardNFT = ({ nft }) => {
-  const { image_url, traits, id } = nft;
+  const { image_url, traits } = nft;
   return (
-    <div className="card-nft-container" key={id}>
+    <div className="card-nft-container">
       <div className="card-image-container">
         <img src={image_url} alt="nft" />
       </div>
