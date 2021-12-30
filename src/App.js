@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from "react";
+import { Button, CardNFT, TextField } from "./components";
 import { useMoralis } from "react-moralis";
 import "./App.css";
 
@@ -25,6 +26,7 @@ function App() {
   const [NFTS, setNFTS] = useState([]);
   const [file, setFile] = useState([]);
   const [name, setName] = useState("");
+  const [imagePreview, setimagePreview] = useState(null);
   const [properties, setProperties] = useState([{ trait_type: "", value: "" }]);
   const [search, setSearch] = useState("");
   const [contractAddress, setContractAddress] = useState("")
@@ -88,6 +90,7 @@ function App() {
   const onFileChange = (e) => {
     const data = e.target.files[0];
     setFile(data);
+    setimagePreview(URL.createObjectURL(data));
   };
 
   const upload = async () => {
@@ -167,105 +170,86 @@ function App() {
   return (
     <>
       {isAuthenticated ? (
-        <div>
-          <div>{web3Account}</div>
-          <button onClick={() => logout()}>Logout</button>
+        <div className="login">
+          <p>
+            Usuario :<span>{web3Account}</span>
+          </p>
+          <Button onClick={() => logout()}>Cerrar sesión</Button>
         </div>
       ) : (
-        <button onClick={() => authenticate()}>Connect to Metamask</button>
+        <Button onClick={() => authenticate()}>Conectarse a Metamask</Button>
       )}
-      <div>
-        {/* <div style={{ margin: "1rem 0" }}>
-          <input
-            type="text"
-            placeholder="NFT Token Address"
-            value={values.tokenAddress}
-            onChange={(e) =>
-              setValues({ ...values, tokenAddress: e.target.value })
-            }
-          />
-          <input
-            type="number"
-            placeholder="NFT Token ID"
-            value={values.tokenId}
-            onChange={(e) => setValues({ ...values, tokenId: e.target.value })}
-          />
-          <button onClick={getAsset}>Get Asset</button>
-        </div> */}
-        <div>
-          <input type="file" name="selectedFile" onChange={onFileChange} />
-          <input
-            type="text"
-            placeholder="Name"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-          />
-        </div>
-        <div>
+      <div className="container">
+        <section>
+          <h3>Escribe el nombre del NFT</h3>
+          <div>
+            <TextField
+              type="text"
+              placeholder="Name"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+            />
+            <TextField
+              type="file"
+              name="selectedFile"
+              onChange={onFileChange}
+            />
+          </div>
+
+          {imagePreview && (
+            <img src={imagePreview} alt="" className="image-preview" />
+          )}
+        </section>
+        <section className="properties">
+          <h3>Propiedades</h3>
           {properties.map((property, i) => (
-            <div key={i}>
-              <input
+            <div key={i} className="property-column">
+              <TextField
                 type="text"
-                placeholder="Name property"
+                placeholder="nombre de la propiedad"
                 value={property.trait_type}
                 onChange={(e) => handleChange(i, e)}
                 name="trait_type"
               />
-              <input
+              <TextField
                 type="text"
-                placeholder="Value property"
+                placeholder="valor de la propiedad"
                 value={property.value}
                 onChange={(e) => handleChange(i, e)}
                 name="value"
               />
 
               {i ? (
-                <button type="button" onClick={() => removeFormFields(i)}>
-                  Remove
-                </button>
+                <Button type="Button" onClick={() => removeFormFields(i)}>
+                  Eliminar propiedad
+                </Button>
               ) : null}
             </div>
           ))}
-          <button onClick={addFormFields}>Add new property</button>
-          <button onClick={upload}>Upload</button>
-        </div>
+        </section>
 
-        <input
-          type="text"
-          placeholder="Search by property"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-        />
+        <section className="property-btn">
+          <Button type="Button" onClick={addFormFields}>
+            Añadir nueva propiedad
+          </Button>
+          <Button type="Button" onClick={upload}>
+            Subir NFT
+          </Button>
+        </section>
 
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fit, minmax(100px, 1fr))",
-            margin: "2rem",
-          }}
-        >
+        <section className="search">
+          <h2>Buscar</h2>
+          <TextField
+            type="text"
+            placeholder="Buscar por propiedad"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
+        </section>
+
+        <div className="grid">
           {searchByProperty(NFTS).map((nft, i) => (
-            <div key={nft.id} style={{ textAlign: "center" }}>
-              <small>{i}</small>
-              <img
-                src={nft.image_url}
-                alt="nft"
-                style={{
-                  objectFit: "contain",
-                  width: "10rem",
-                  height: "10rem",
-                  maxWidth: "100%",
-                  maxHeight: "100%",
-                }}
-              />
-              <ul>
-                {nft.traits.map((trait, index) => (
-                  <li key={index}>
-                    {trait.trait_type}: {trait.value}
-                  </li>
-                ))}
-              </ul>
-            </div>
+            <CardNFT nft={nft} />
           ))}
         </div>
       </div>

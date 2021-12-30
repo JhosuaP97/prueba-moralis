@@ -1,38 +1,50 @@
-.App {
-  text-align: center;
+@import url("https://fonts.googleapis.com/css2?family=Montserrat:wght@100;300;400;500;600;700&display=swap");
+:root {
+  --bg-button: #4545e6;
 }
-
-.App-logo {
-  height: 40vmin;
-  pointer-events: none;
-}
-
-@media (prefers-reduced-motion: no-preference) {
-  .App-logo {
-    animation: App-logo-spin infinite 20s linear;
-  }
-}
-
-.App-header {
-  background-color: #282c34;
-  min-height: 100vh;
+.login {
   display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  font-size: calc(10px + 2vmin);
-  color: white;
+  justify-content: space-around;
 }
 
-.App-link {
-  color: #61dafb;
+.container {
+  max-width: 1280px;
+  margin: 0 auto;
 }
 
-@keyframes App-logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+.image-preview {
+  width: 400px;
+  object-fit: contain;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(12.5rem, 1fr));
+  grid-gap: 2rem;
+  transition: all 0.3s ease-in-out;
+}
+
+.properties {
+  overflow-y: auto;
+  max-height: 220px;
+  margin: 2rem 0;
+  border-bottom: 1px solid rgb(211, 211, 211);
+  border-radius: 6px;
+  max-width: 700px;
+}
+
+.property-column {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.property-btn {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.search {
+  margin: 1.5rem 0;
 }
