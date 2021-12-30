@@ -1,0 +1,36 @@
+.text-field {
+  width: 100%;
+  max-width: 200px;
+  padding: 0.5rem;
+  border-radius: 6px;
+  outline: none;
+  border: 1px solid #ccc;
+  transition: border 0.2s ease-in-out;
+  font-family: Montserrat;
+  text-transform: capitalize;
+  background-color: #eeeeee;
+}
+
+.text-field:focus {
+  border: 1.5px solid var(--bg-button);
+}
+
+input[type="file"] {
+  outline: none;
+  width: 400px;
+  max-width: 400px;
+  border: none;
+  background: none;
+  cursor: pointer;
+}
+
+::-webkit-file-upload-button {
+  color: white;
+  background: var(--bg-button);
+  padding: 0.8rem;
+  border: none;
+  border-radius: 6px;
+  box-shadow: 0 1px 1px #6b4559;
+  outline: none;
+  cursor: pointer;
+}
