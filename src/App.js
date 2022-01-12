@@ -4,7 +4,7 @@ import { useMoralis } from "react-moralis";
 import toast, { Toaster } from "react-hot-toast";
 import "./App.css";
 
-const ownerContractAddress = "0x6bdde8b895cfa888ce235da49068f2c94e81fed4";
+const ownerContractAddress = "0xE4DCeA1AB8C86543209571350a5C1D470eB009b1";
 const urlOpenSea = `https://testnets-api.opensea.io/assets?owner=${ownerContractAddress}&order_direction=desc&offset=0&limit=10&offset=0`;
 
 function App() {
@@ -74,17 +74,17 @@ function App() {
     // eslint-disable-next-line
   }, [isAuthenticated]);
 
-  // useEffect(() => {
-  //   const fetchData = async () => {
-  //     const response = await fetch("http://127.0.0.1:5000/gestion_empresa/company_contract", {
-  //       method: "GET",
-  //     });
-  //     const data = await response.json();
-  //     console.log(data);
-  //     setContractAddress(data.data);
-  //   };
-  //   fetchData();
-  // }, []);
+  useEffect(() => {
+    const fetchData = async () => {
+      const response = await fetch("http://127.0.0.1:5000/gestion_empresa/company_contract", {
+        method: "GET",
+      });
+      const data = await response.json();
+      console.log(data);
+      setContractAddress(data.data);
+    };
+    fetchData();
+  }, []);
 
   const onFileChange = (e) => {
     if (e.target.files.length !== 0) {
